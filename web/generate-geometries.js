@@ -575,4 +575,4 @@ topo = topojson.presimplify(topo);
 topo = topojson.simplify(topo, 0.01);
 topo = topojson.filter(topo, topojson.filterWeight(topo, 0.01));
 topo = topojson.quantize(topo, 1e5);
-fs.writeFileSync('src/world.json', JSON.stringify(topo));
+fs.writeFileSync('src/country.json', JSON.stringify(topo));

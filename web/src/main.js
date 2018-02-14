@@ -1,6 +1,6 @@
 'use strict';
 
-import CountryMap from './components/map';
+import WorldMap from './components/map';
 // see https://stackoverflow.com/questions/36887428/d3-event-is-null-in-a-reactjs-d3js-component
 import { event as currentEvent } from 'd3-selection';
 
@@ -28,7 +28,7 @@ const CountryTable = require('./components/countrytable');
 const HorizontalColorbar = require('./components/horizontalcolorbar');
 const Tooltip = require('./components/tooltip');
 
-const CountryTopos = require('./countrytopos');
+const WorldTopos = require('./worldtopos');
 const DataService = require('./dataservice');
 
 const ExchangeLayer = require('./components/layers/exchange');
@@ -109,8 +109,8 @@ const app = {
     if (cordova.platformId === 'ios') {
       d3.select('#header')
         .style('padding-top', '20px');
-      if (typeof countryMap !== 'undefined') {
-        countryMap.map.resize();
+      if (typeof worldMap !== 'undefined') {
+        worldMap.map.resize();
       }
     }
     codePush.sync(null, { installMode: InstallMode.ON_NEXT_RESUME });
@@ -184,7 +184,7 @@ function updateCo2Scale() {
     .markerColor('white')
     .domain([0, maxCo2])
     .render());
-  if (typeof countryMap !== 'undefined') countryMap.setCo2color(co2color);
+  if (typeof worldMap !== 'undefined') worldMap.setCo2color(co2color);
   if (countryTable) countryTable.co2color(co2color).render();
   if (countryHistoryCarbonGraph) countryHistoryCarbonGraph.yColorScale(co2color);
   if (countryHistoryMixGraph) countryHistoryMixGraph.co2color(co2color);
@@ -272,11 +272,11 @@ const modeOrder = [
 let exchangeLayer = null;
 LoadingService.startLoading('#loading');
 LoadingService.startLoading('#small-loading');
-let countryMap;
+let worldMap;
 let windLayer;
 let solarLayer;
 try {
-  countryMap = new CountryMap('zones')
+  worldMap = new WorldMap('zones')
     .setCo2color(co2color)
     .onDragEnd(() => {
       if (!mapDraggedSinceStart) { mapDraggedSinceStart = true; }
@@ -289,7 +289,7 @@ try {
         .parentNode
         .appendChild(el);
       // Create exchange layer as a result
-      exchangeLayer = new ExchangeLayer('arrows-layer', countryMap)
+      exchangeLayer = new ExchangeLayer('arrows-layer', worldMap)
         .onExchangeMouseOver((d) => {
           tooltipHelper.showMapExchange(exchangeTooltip, d, co2color, co2Colorbars);
         })
@@ -304,7 +304,7 @@ try {
         .onExchangeClick((d) => {
           console.log(d);
         })
-        .setData(Object.values(exchanges))
+        .setCountryData(Object.values(exchanges))
         .render();
       LoadingService.stopLoading('#loading');
       LoadingService.stopLoading('#small-loading');
@@ -312,8 +312,8 @@ try {
         thirdPartyServices._ga.timingMark('map_loaded');
       }
     });
-  windLayer = new WindLayer('wind', countryMap);
-  solarLayer = new SolarLayer('solar', countryMap);
+  windLayer = new WindLayer('wind', worldMap);
+  solarLayer = new SolarLayer('solar', worldMap);
   dispatchApplication('webglsupported', true);
 } catch (e) {
   if (e === 'WebGL not supported') {
@@ -451,8 +451,8 @@ window.toggleSource = (state) => {
 };
 
 // Prepare data
-const countries = CountryTopos.addCountryTopos({});
-const oceans = CountryTopos.addOceanTopos({});
+const countries = WorldTopos.addCountryTopos({});
+const oceans = WorldTopos.addOceanTopos({});
 // Validate selected country
 if (d3.keys(countries).indexOf(getState().application.selectedCountryCode) === -1) {
   dispatchApplication('selectedCountryCode', undefined);
@@ -461,9 +461,9 @@ if (d3.keys(countries).indexOf(getState().application.selectedCountryCode) === -
   }
 }
 // Assign data
-if (typeof countryMap !== 'undefined') {
-  countryMap.setData(d3.values(countries));
-  countryMap.setOceanData(oceans);
+if (typeof worldMap !== 'undefined') {
+  worldMap.setCountryData(d3.values(countries));
+  worldMap.setOceanData(oceans);
 }
 // Add configurations
 d3.entries(zonesConfig).forEach(d => {
@@ -697,8 +697,8 @@ function selectCountry(countryCode, notrack) {
   }
 }
 // Bind
-if (typeof countryMap !== 'undefined') {
-  countryMap
+if (typeof worldMap !== 'undefined') {
+  worldMap
     .onSeaClick(() => {
       dispatchApplication('selectedCountryCode', undefined);
       dispatchApplication('showPageState', 'map');
@@ -835,7 +835,7 @@ function mapMouseOver(lonlat) {
 }
 
 function renderMap() {
-  if (typeof countryMap === 'undefined') { return; }
+  if (typeof worldMap === 'undefined') { return; }
 
   if (!mapDraggedSinceStart) {
     const geolocation = callerLocation;
@@ -843,12 +843,12 @@ function renderMap() {
     if (selectedCountryCode) {
       const lon = d3.mean(countries[selectedCountryCode].coordinates[0][0], d => d[0]);
       const lat = d3.mean(countries[selectedCountryCode].coordinates[0][0], d => d[1]);
-      countryMap.setCenter([lon, lat]);
+      worldMap.setCenter([lon, lat]);
     } else if (geolocation) {
       console.log('Centering on', geolocation);
-      countryMap.setCenter(geolocation);
+      worldMap.setCenter(geolocation);
     } else {
-      countryMap.setCenter([0, 50]);
+      worldMap.setCenter([0, 50]);
     }
   }
   if (exchangeLayer) {
@@ -1048,10 +1048,10 @@ function dataLoaded(err, clientVersion, argCallerLocation, state, argSolar, argW
     dispatchApplication('showPageState', 'country');
   });
 
-  if (typeof countryMap !== 'undefined') {
+  if (typeof worldMap !== 'undefined') {
     // Assign country map data
-    countryMap
-      .setData(d3.values(countries))
+    worldMap
+      .setCountryData(d3.values(countries))
       .onCountryMouseOver((d) => {
         tooltipHelper.showMapCountry(countryTooltip, d, co2color, co2Colorbars);
       })
@@ -1112,7 +1112,7 @@ function dataLoaded(err, clientVersion, argCallerLocation, state, argSolar, argW
   // Render exchanges
   if (exchangeLayer) {
     exchangeLayer
-      .setData(d3.values(exchanges))
+      .setCountryData(d3.values(exchanges))
       .render();
   }
 

@@ -203,7 +203,7 @@ export default class Map {
         prevId = e.features[0].properties.zoneId;
         const hoverSource = this.map.getSource('hover');
         if (hoverSource) {
-          hoverSource.setData(e.features[0]);
+          hoverSource.setCountryData(e.features[0]);
         }
       }
       if (this.countryMouseMoveHandler) {
@@ -236,7 +236,7 @@ export default class Map {
       // Disable for touch devices
       if (this.userIsUsingTouch) { return; }
       this.map.getCanvas().style.cursor = '';
-      this.map.getSource('hover').setData({
+      this.map.getSource('hover').setCountryData({
         type: 'FeatureCollection',
         features: [],
       });
@@ -401,7 +401,7 @@ export default class Map {
     return this;
   }
 
-  setData(data) {
+  setCountryData(data) {
     this.data = data;
     this.clickableZoneGeometries = [];
     this.nonClickableZoneGeometries = [];

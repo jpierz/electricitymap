@@ -1,18 +1,18 @@
-const topo = require('./world.json');
+const country = require('./country.json');
 const topojson = require('topojson');
 const oceanjson = require('./ocean.json')
 
 var exports = module.exports = {};
 
 exports.addCountryTopos = (countries) => {
-  Object.keys(topo.objects).forEach((k) => {
-    if (!topo.objects[k].arcs) { return; }
+  Object.keys(country.objects).forEach((k) => {
+    if (!country.objects[k].arcs) { return; }
     let geo;
     // Do merge inner arcs for those
     if (['US'].indexOf(k.split('-')[0]) !== -1) {
-      geo = topojson.feature(topo, topo.objects[k]);
+      geo = topojson.feature(country, country.objects[k]);
     } else {
-      geo = { geometry: topojson.merge(topo, [topo.objects[k]]) };
+      geo = { geometry: topojson.merge(country, [country.objects[k]]) };
     }
     // Exclude countries with null geometries.
     if (geo.geometry) {
